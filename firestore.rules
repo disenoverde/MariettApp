@@ -1,0 +1,75 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ──
+    function isCoach() {
+      return request.auth != null && request.auth.token.role == 'coach';
+    }
+    function isCliente(uid) {
+      return request.auth != null && request.auth.uid == uid && request.auth.token.role == 'cliente';
+    }
+    function isOwnerCliente(clienteId) {
+      // El cliente puede acceder si su uid_cliente coincide con request.auth.uid
+      return request.auth != null && request.auth.token.role == 'cliente' &&
+             get(/databases/$(database)/documents/clientes/$(clienteId)).data.uid_cliente == request.auth.uid;
+    }
+
+    // ── Clientes ──
+    match /clientes/{clienteId} {
+      allow read, write: if isCoach();
+      allow read: if isOwnerCliente(clienteId);
+    }
+
+    // ── Historias de Salud ──
+    match /historias_salud/{historiaId} {
+      allow read, write: if isCoach();
+      allow read: if isOwnerCliente(historiaId);
+      allow update: if isOwnerCliente(historiaId) &&
+                       !resource.data.keys().hasAny(['bloqueada']) ||
+                       !resource.data.bloqueada;
+    }
+
+    // ── Objetivos ──
+    match /objetivos/{objetivoId} {
+      allow read, write: if isCoach();
+      allow read: if isOwnerCliente(objetivoId);
+    }
+
+    // ── Sesiones (SOLO el coach) ──
+    match /sesiones/{sesionId} {
+      allow read, write: if isCoach();
+    }
+
+    // ── Ruedas del Bienestar ──
+    match /ruedas_bienestar/{ruedaId} {
+      allow read, write: if isCoach();
+      // Cliente puede leer y crear su rueda (no editar si está bloqueada)
+      allow read: if request.auth != null &&
+                     request.auth.token.role == 'cliente' &&
+                     resource.data.cliente_id == get(/databases/$(database)/documents/clientes/$(resource.data.cliente_id)).data.uid_cliente;
+      allow create: if request.auth != null && request.auth.token.role == 'cliente';
+    }
+
+    // ── Contratos ──
+    match /contratos/{contratoId} {
+      allow read, write: if isCoach();
+      // Cliente puede leer y firmar (update solo si está pendiente)
+      allow read: if request.auth != null && request.auth.token.role == 'cliente' &&
+                     isOwnerCliente(resource.data.cliente_id);
+      allow update: if request.auth != null && request.auth.token.role == 'cliente' &&
+                       isOwnerCliente(resource.data.cliente_id) &&
+                       resource.data.estado == 'pendiente_firma';
+    }
+
+    // ── Invitaciones ──
+    match /invitaciones/{invId} {
+      allow read, write: if isCoach();
+      // Cualquiera puede leer para validar código (sin auth)
+      allow read: if true;
+      // Solo usuarios autenticados pueden marcar como usado
+      allow update: if request.auth != null &&
+                       request.resource.data.usado == true;
+    }
+  }
+}

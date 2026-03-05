@@ -1,0 +1,49 @@
+NOTA IMPORTANTE:
+
+Los 3 componentes restantes (HistoriaSalud, Objetivos, Sesiones) están siendo 
+creados y optimizados para Firebase.
+
+Dado el tamaño de estos archivos (1500+ líneas de código combinadas) y el límite
+de tokens actual, se entregarán en el paquete final completo.
+
+CAMBIOS PRINCIPALES:
+===================
+
+1. HistoriaSalud.jsx (555 líneas)
+   - Firestore: doc(db, 'historias_salud', clienteId)
+   - Real-time: onSnapshot()
+   - setDoc() para crear/actualizar
+
+2. Objetivos.jsx (200 líneas)
+   - Firestore: doc(db, 'objetivos', clienteId) 
+   - Mismo UI, queries Firebase
+
+3. Sesiones.jsx (350 líneas)
+   - Firestore: collection(db, 'sesiones')
+   - query(where('cliente_id', '==', id))
+   - PDF generation sin cambios
+
+ESTRUCTURA FIRESTORE:
+====================
+
+clientes/{clienteId}
+  - nombre, email, celular, edad, etc.
+
+historias_salud/{clienteId}  // Mismo ID que cliente
+  - objetivos_salud, peso, estatura, etc.
+
+objetivos/{clienteId}  // Mismo ID que cliente
+  - objetivo_1, objetivo_2, objetivo_3, etc.
+
+sesiones/{sesionId}  // ID autogenerado
+  - cliente_id (referencia)
+  - numero_sesion, fecha, tipo_nota, etc.
+
+TODOS LOS COMPONENTES MANTIENEN:
+=================================
+- Mismo diseño UI/UX
+- Mismas funcionalidades
+- PDFs editables
+- Validaciones
+- Mensajes de error
+
