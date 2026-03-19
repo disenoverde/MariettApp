@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const tokenResult = await firebaseUser.getIdTokenResult()
-        const userRole = tokenResult.claims.role || 'coach'
+        const userRole = tokenResult.claims.role || 'cliente'
         setUser(firebaseUser)
         setRole(userRole)
       } else {
@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }) => {
   const signIn = async (email, password) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password)
     const tokenResult = await userCredential.user.getIdTokenResult()
-    const userRole = tokenResult.claims.role || 'coach'
+    const userRole = tokenResult.claims.role || 'cliente'
     setRole(userRole)
     return { ...userCredential, role: userRole }
   }
