@@ -473,7 +473,7 @@ function toVal(i, x, y) {
 // ─────────────────────────────────────────────
 //  Componente principal
 // ─────────────────────────────────────────────
-export default function RuedaBienestar({ clienteId, esCoach = false, ruedaInicial = null }) {
+export default function RuedaBienestar({ clienteId, tipo = 'inicial', esCoach = false, ruedaInicial = null }) {
   const [valores,   setValores]   = useState(new Array(12).fill(5));
   const [bloqueada, setBloqueada] = useState(false);
   const [guardando, setGuardando] = useState(false);
@@ -487,7 +487,7 @@ export default function RuedaBienestar({ clienteId, esCoach = false, ruedaInicia
     if (!clienteId) return;
     const cargar = async () => {
       try {
-        const snap = await getDoc(doc(db, "ruedas_bienestar", clienteId));
+        const snap = await getDoc(doc(db, "ruedas_bienestar", `${clienteId}_${tipo}`));
         if (snap.exists()) {
           const data = snap.data();
           setValores(data.valores || new Array(12).fill(5));
@@ -550,7 +550,7 @@ export default function RuedaBienestar({ clienteId, esCoach = false, ruedaInicia
         creadoEn: serverTimestamp(),
         areas: Object.fromEntries(AREAS.map((a, i) => [a, valores[i]])),
       };
-      await setDoc(doc(db, "ruedas_bienestar", clienteId), data);
+      await setDoc(doc(db, "ruedas_bienestar", `${clienteId}_${tipo}`), data);
       setBloqueada(true);
       setGuardado(true);
     } catch (err) {
