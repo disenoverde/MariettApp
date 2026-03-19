@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { db } from '../lib/firebase'
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'
+import { collection, query, where, getDocs } from 'firebase/firestore'
 import { Heart, Target, Circle, FileText, LogOut, User } from 'lucide-react'
 import HistoriaSalud from '../components/HistoriaSalud'
 import Objetivos from '../components/Objetivos'
@@ -16,25 +16,20 @@ export default function PortalPaciente() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('bienvenida')
   const [contrato, setContrato] = useState(null)
-  const [ruedaActiva, setRuedaActiva] = useState(false)
+  const [ruedaInicialActiva, setRuedaInicialActiva] = useState(false)
+  const [ruedaFinalActiva, setRuedaFinalActiva] = useState(false)
 
   useEffect(() => {
     const cargarCliente = async () => {
       if (!user) return
       try {
-        // Buscar cliente por uid_cliente
         const q = query(collection(db, 'clientes'), where('uid_cliente', '==', user.uid))
         const snap = await getDocs(q)
         if (!snap.empty) {
           const clienteData = { id: snap.docs[0].id, ...snap.docs[0].data() }
           setCliente(clienteData)
-
-          // Verificar si hay rueda activa
-          if (clienteData.rueda_inicial_activa || clienteData.rueda_final_activa) {
-            setRuedaActiva(true)
-          }
-
-          // Verificar contrato
+          setRuedaInicialActiva(clienteData.rueda_inicial_activa || false)
+          setRuedaFinalActiva(clienteData.rueda_final_activa || false)
           const contratoQ = query(
             collection(db, 'contratos'),
             where('cliente_id', '==', snap.docs[0].id)
@@ -58,11 +53,15 @@ export default function PortalPaciente() {
   }
 
   const tabs = [
-    { id: 'bienvenida', label: 'Inicio', icon: User },
-    { id: 'historia', label: 'Mi Historia de Salud', icon: Heart },
-    { id: 'objetivos', label: 'Mis Objetivos', icon: Target },
-    ...(ruedaActiva ? [{ id: 'rueda', label: 'Rueda del Bienestar', icon: Circle }] : []),
-    ...(contrato ? [{ id: 'contrato', label: 'Mi Contrato', icon: FileText }] : []),
+    { id: 'bienvenida', label: 'Inicio',    icon: User },
+    { id: 'historia',   label: 'Mi Salud',  icon: Heart },
+    { id: 'objetivos',  label: 'Objetivos', icon: Target },
+    ...(ruedaInicialActiva || ruedaFinalActiva
+      ? [{ id: 'rueda', label: 'Rueda', icon: Circle }]
+      : []),
+    ...(contrato
+      ? [{ id: 'contrato', label: 'Contrato', icon: FileText }]
+      : []),
   ]
 
   if (loading) {
@@ -89,7 +88,6 @@ export default function PortalPaciente() {
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -109,8 +107,6 @@ export default function PortalPaciente() {
             Salir
           </button>
         </div>
-
-        {/* Tabs */}
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="flex gap-1 border-b border-neutral-200 overflow-x-auto">
             {tabs.map((tab) => {
@@ -126,7 +122,7 @@ export default function PortalPaciente() {
                   }`}
                 >
                   <Icon size={16} />
-                  {tab.label}
+                  <span>{tab.label}</span>
                 </button>
               )
             })}
@@ -134,52 +130,39 @@ export default function PortalPaciente() {
         </div>
       </header>
 
-      {/* Content */}
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+
         {activeTab === 'bienvenida' && (
-          <div>
-            <div className="bg-gradient-to-br from-[#1e3a5f] to-[#2e5c8a] rounded-2xl p-8 text-white mb-6">
-              <h2 className="text-2xl font-bold mb-2">¡Hola, {cliente.nombre.split(' ')[0]}!</h2>
-              <p className="text-blue-200">
-                Bienvenida a tu portal personal de coaching con Mariett Alcayaga.
+          <div className="space-y-4">
+            <div className="bg-white rounded-xl p-6 shadow-sm">
+              <h2 className="text-xl font-semibold text-[#1e3a5f] mb-2">
+                Hola, {cliente.nombre.split(' ')[0]} 👋
+              </h2>
+              <p className="text-neutral-600 text-sm">
+                Este es tu espacio personal de coaching. Aquí puedes revisar tu historia de salud,
+                tus objetivos y el material que Mariett comparte contigo.
               </p>
             </div>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div
-                onClick={() => setActiveTab('historia')}
-                className="bg-white rounded-xl p-6 shadow-sm border border-neutral-100 cursor-pointer hover:shadow-md transition-shadow"
-              >
+              <div onClick={() => setActiveTab('historia')} className="bg-white rounded-xl p-6 shadow-sm border border-neutral-100 cursor-pointer hover:shadow-md transition-shadow">
                 <Heart className="text-[#7c9885] mb-3" size={28} />
-                <h3 className="font-semibold text-[#1e3a5f]">Historia de Salud</h3>
-                <p className="text-sm text-neutral-500 mt-1">Tu información de salud y bienestar</p>
+                <h3 className="font-semibold text-[#1e3a5f]">Mi Historia de Salud</h3>
+                <p className="text-sm text-neutral-500 mt-1">Tu información de salud y antecedentes</p>
               </div>
-
-              <div
-                onClick={() => setActiveTab('objetivos')}
-                className="bg-white rounded-xl p-6 shadow-sm border border-neutral-100 cursor-pointer hover:shadow-md transition-shadow"
-              >
+              <div onClick={() => setActiveTab('objetivos')} className="bg-white rounded-xl p-6 shadow-sm border border-neutral-100 cursor-pointer hover:shadow-md transition-shadow">
                 <Target className="text-[#7c9885] mb-3" size={28} />
                 <h3 className="font-semibold text-[#1e3a5f]">Mis Objetivos</h3>
                 <p className="text-sm text-neutral-500 mt-1">Tus metas del proceso de coaching</p>
               </div>
-
-              {ruedaActiva && (
-                <div
-                  onClick={() => setActiveTab('rueda')}
-                  className="bg-white rounded-xl p-6 shadow-sm border border-[#7c9885] cursor-pointer hover:shadow-md transition-shadow"
-                >
+              {(ruedaInicialActiva || ruedaFinalActiva) && (
+                <div onClick={() => setActiveTab('rueda')} className="bg-white rounded-xl p-6 shadow-sm border border-[#7c9885] cursor-pointer hover:shadow-md transition-shadow">
                   <Circle className="text-[#7c9885] mb-3" size={28} />
                   <h3 className="font-semibold text-[#1e3a5f]">Rueda del Bienestar</h3>
                   <p className="text-sm text-[#7c9885] mt-1 font-medium">¡Tienes una rueda pendiente de completar!</p>
                 </div>
               )}
-
               {contrato && (
-                <div
-                  onClick={() => setActiveTab('contrato')}
-                  className="bg-white rounded-xl p-6 shadow-sm border border-neutral-100 cursor-pointer hover:shadow-md transition-shadow"
-                >
+                <div onClick={() => setActiveTab('contrato')} className="bg-white rounded-xl p-6 shadow-sm border border-neutral-100 cursor-pointer hover:shadow-md transition-shadow">
                   <FileText className="text-[#7c9885] mb-3" size={28} />
                   <h3 className="font-semibold text-[#1e3a5f]">Mi Contrato</h3>
                   <p className="text-sm text-neutral-500 mt-1">
@@ -194,15 +177,38 @@ export default function PortalPaciente() {
         {activeTab === 'historia' && (
           <HistoriaSalud clienteId={cliente.id} readOnly={false} portalMode={true} />
         )}
+
         {activeTab === 'objetivos' && (
           <Objetivos clienteId={cliente.id} readOnly={true} />
         )}
-        {activeTab === 'rueda' && ruedaActiva && (
-          <RuedaBienestar clienteId={cliente.id} cliente={cliente} portalMode={true} />
+
+        {activeTab === 'rueda' && (ruedaInicialActiva || ruedaFinalActiva) && (
+          <div className="space-y-6">
+            <div className={`grid gap-8 ${ruedaInicialActiva && ruedaFinalActiva ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 max-w-2xl mx-auto'}`}>
+              {ruedaInicialActiva && (
+                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                  <div className="bg-[#1e3a5f] px-6 py-3">
+                    <p className="text-white text-xs font-semibold uppercase tracking-widest text-center">Rueda Inicial</p>
+                  </div>
+                  <RuedaBienestar clienteId={cliente.id} tipo="inicial" esCoach={false} portalMode={true} />
+                </div>
+              )}
+              {ruedaFinalActiva && (
+                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                  <div className="bg-[#7c9885] px-6 py-3">
+                    <p className="text-white text-xs font-semibold uppercase tracking-widest text-center">Rueda Final</p>
+                  </div>
+                  <RuedaBienestar clienteId={cliente.id} tipo="final" esCoach={false} portalMode={true} />
+                </div>
+              )}
+            </div>
+          </div>
         )}
+
         {activeTab === 'contrato' && contrato && (
           <ContratoVisor contrato={contrato} cliente={cliente} portalMode={true} />
         )}
+
       </main>
     </div>
   )
