@@ -95,7 +95,7 @@ export default function PortalPaciente() {
               <span className="text-white text-sm font-bold">MA</span>
             </div>
             <div>
-              <p className="font-semibold text-[#1e3a5f]">{cliente.nombre}</p>
+              <p className="font-semibold text-white">{cliente.nombre}</p>
               <p className="text-xs text-neutral-500">Portal de cliente · Mariett Alcayaga</p>
             </div>
           </div>
