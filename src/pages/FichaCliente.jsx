@@ -108,9 +108,7 @@ export default function FichaCliente() {
             Volver al Dashboard
           </button>
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-secondary to-accent rounded-full flex items-center justify-center">
-              <User className="text-white" size={32} />
-            </div>
+            <img src="/logo.svg" alt="Mariett Alcayaga" className="h-10 w-auto" />
             <div>
               <h1 className="text-2xl font-bold text-primary">{cliente.nombre}</h1>
               <p className="text-neutral-600">{cliente.email}</p>
