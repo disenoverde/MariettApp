@@ -600,15 +600,26 @@ export default function RuedaBienestar({ clienteId, tipo = 'inicial', esCoach = 
           </p>
           <ol className="flex flex-col gap-4">
             {[
-              { n: 1, texto: "Arrastra cada punto para indicar tu nivel de satisfacción. Hacia la periferia = satisfecho · Hacia el centro = insatisfecho." },
-              { n: 2, texto: "El polígono se construye automáticamente al conectar tus 12 puntos." },
+              { n: 1, texto: null, bullets: ["Hacia la periferia = satisfecho", "Hacia el centro = insatisfecho"] },
+              { n: 2, texto: "La conexión de los 12 puntos muestra como está tu rueda del bienestar hoy." },
               { n: 3, texto: "Identifica tus áreas de enfoque y decide dónde invertir más energía." },
-            ].map(({ n, texto }) => (
+            ].map(({ n, texto, bullets }) => (
               <li key={n} className="flex gap-3 items-start">
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#212751] text-white text-xs flex items-center justify-center mt-0.5">
                   {n}
                 </span>
-                <p className="text-sm font-light text-gray-600 leading-relaxed">{texto}</p>
+                <div>
+                  {texto && <p className="text-sm font-light text-gray-600 leading-relaxed">{texto}</p>}
+                  {bullets && (
+                    <ul className="mt-1 space-y-1">
+                      {bullets.map((b, i) => (
+                        <li key={i} className="text-sm font-light text-gray-600 flex items-start gap-1">
+                          <span className="mt-1 text-[#055a8b]">·</span> {b}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </li>
             ))}
           </ol>
