@@ -91,9 +91,7 @@ export default function PortalPaciente() {
       <header className="bg-white shadow-sm">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#1e3a5f] rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-bold">MA</span>
-            </div>
+            <img src="/logo.svg" alt="Mariett Alcayaga" className="h-8 w-auto" />
             <div>
               <p className="font-semibold text-white">{cliente.nombre}</p>
               <p className="text-xs text-neutral-500">Portal de cliente · Mariett Alcayaga</p>
