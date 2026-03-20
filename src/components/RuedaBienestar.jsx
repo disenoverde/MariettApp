@@ -574,10 +574,10 @@ export default function RuedaBienestar({ clienteId, tipo = 'inicial', esCoach = 
   const puedeArrastrar = !bloqueada || esCoach;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 w-full max-w-5xl mx-auto px-4 py-6 font-sans">
+    <div className="flex flex-col gap-6 w-full max-w-5xl mx-auto px-4 py-6 font-sans">
 
       {/* ── Columna info ── */}
-      <div className="lg:w-2/5 flex flex-col justify-center gap-5">
+      <div className="w-full flex flex-col gap-5 order-2">
         <div>
           <p className="text-xs font-semibold tracking-widest uppercase text-[#055a8b] mb-3">
             Herramienta de coaching
@@ -636,12 +636,12 @@ export default function RuedaBienestar({ clienteId, tipo = 'inicial', esCoach = 
       </div>
 
       {/* ── Columna rueda ── */}
-      <div className="lg:w-3/5 flex flex-col items-center gap-4">
+      <div className="w-full flex flex-col items-center gap-4 order-1">
 
         {/* Rueda */}
         <div
           className="relative w-full select-none"
-          style={{ maxWidth: 460, aspectRatio: "612 / 792" }}
+          style={{ maxWidth: 600, aspectRatio: "612 / 792" }}
         >
           {/* SVG fondo inline */}
           <div
