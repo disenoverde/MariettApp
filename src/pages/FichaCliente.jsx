@@ -109,10 +109,11 @@ export default function FichaCliente() {
           </button>
           <div className="flex items-center gap-4">
             <img src="/logo.svg" alt="Mariett Alcayaga" className="h-10 w-auto" />
-            <div>
-              <h1 className="text-2xl font-bold text-primary">{cliente.nombre}</h1>
-              <p className="text-neutral-600">{cliente.email}</p>
-            </div>
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-primary">{cliente.nombre}</h1>
+            <p className="text-neutral-600">{cliente.email}</p>
+          </div>
           </div>
         </div>
 
