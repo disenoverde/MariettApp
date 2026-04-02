@@ -110,11 +110,6 @@ export default function FichaCliente() {
           <div className="flex items-center gap-4">
             <img src="/logo.svg" alt="Mariett Alcayaga" className="h-10 w-auto" />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-primary">{cliente.nombre}</h1>
-            <p className="text-neutral-600">{cliente.email}</p>
-          </div>
-          </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
