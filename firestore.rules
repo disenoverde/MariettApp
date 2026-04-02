@@ -19,6 +19,10 @@ service cloud.firestore {
     match /clientes/{clienteId} {
       allow read, write: if isCoach();
       allow read: if isOwnerCliente(clienteId);
+      // Cliente puede actualizar su propio documento al registrarse
+      allow update: if request.auth != null &&
+                       request.auth.token.role == 'cliente' &&
+                       request.resource.data.uid_cliente == request.auth.uid;
     }
 
     // ── Historias de Salud ──
