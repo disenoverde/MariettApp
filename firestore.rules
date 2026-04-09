@@ -60,13 +60,8 @@ service cloud.firestore {
       allow read, write: if isCoach();
       // Cualquiera puede leer para firmar (ruta pública)
       allow read: if true;
-      // Cliente autenticado puede firmar si está pendiente
-      allow update: if request.auth != null && request.auth.token.role == 'cliente' &&
-                       isOwnerCliente(resource.data.cliente_id) &&
-                       resource.data.estado == 'pendiente_firma';
-      // Cualquier usuario autenticado puede firmar (para firma pública)
-      allow update: if request.auth == null &&
-                       resource.data.estado == 'pendiente_firma';
+      // Cualquier persona puede firmar si el contrato está pendiente
+      allow update: if resource.data.estado == 'pendiente_firma';
     }
 
     // ── Invitaciones ──
