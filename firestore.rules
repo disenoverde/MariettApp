@@ -20,8 +20,8 @@ service cloud.firestore {
       allow read, write: if isCoach();
       allow read: if isOwnerCliente(clienteId);
       // Cliente puede actualizar su propio documento al registrarse
+      // (con o sin claim de cliente, ya que el claim puede no estar aún)
       allow update: if request.auth != null &&
-                       request.auth.token.role == 'cliente' &&
                        request.resource.data.uid_cliente == request.auth.uid;
     }
 
