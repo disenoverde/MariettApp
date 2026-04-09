@@ -3,8 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { validarCodigo, usarInvitacion } from '../lib/invitaciones'
 import { db } from '../lib/firebase'
-import { getFunctions, httpsCallable } from 'firebase/functions'
-import { doc, updateDoc } from 'firebase/firestore'
+import { doc, updateDoc, setDoc } from 'firebase/firestore'
 
 export default function RegistroCliente() {
   const [searchParams] = useSearchParams()
@@ -73,17 +72,12 @@ export default function RegistroCliente() {
         portal_activo: true,
       })
 
-      // Asignar custom claim role:'cliente' via Cloud Function
-      try {
-        const functions = getFunctions()
-        const asignarRol = httpsCallable(functions, 'asignarRolCliente')
-        await asignarRol()
-        // Refrescar token para que el claim surta efecto
-        await cred.user.getIdToken(true)
-      } catch (fnErr) {
-        console.warn('Cloud Function no disponible aún:', fnErr.message)
-        // El rol se asignará en el próximo login cuando la función esté desplegada
-      }
+      // Guardar rol en Firestore (sin Cloud Functions)
+      await setDoc(doc(db, 'usuarios', uid), {
+        role: 'cliente',
+        email: email,
+        creadoEn: new Date().toISOString()
+      })
 
       navigate('/portal')
     } catch (e) {

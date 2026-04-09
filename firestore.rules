@@ -65,6 +65,16 @@ service cloud.firestore {
     }
 
     // ── Invitaciones ──
+    // ── Usuarios (roles) ──
+    match /usuarios/{uid} {
+      // Coach puede leer todos
+      allow read, write: if isCoach();
+      // El propio usuario puede leer su rol
+      allow read: if request.auth != null && request.auth.uid == uid;
+      // Cualquier usuario autenticado puede crear su propio documento de rol
+      allow create: if request.auth != null && request.auth.uid == uid;
+    }
+
     match /invitaciones/{invId} {
       allow read, write: if isCoach();
       // Cualquiera puede leer para validar código (sin auth)
