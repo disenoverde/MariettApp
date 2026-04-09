@@ -33,6 +33,13 @@ export default function PanelInvitacion({ cliente }) {
     try {
       const inv = await crearInvitacion(cliente.id, cliente.email, cliente.nombre)
       await cargarInvitacion()
+      // Enviar email automáticamente al generar el código
+      await enviarInvitacion({
+        emailCliente: cliente.email,
+        nombreCliente: cliente.nombre,
+        codigo: inv.codigo,
+      })
+      alert(`✅ Invitación enviada a ${cliente.email}`)
     } catch (e) {
       alert('Error al generar invitación: ' + e.message)
     }
