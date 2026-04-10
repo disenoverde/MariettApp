@@ -265,7 +265,34 @@ export default function FichaCliente() {
         {activeTab === 'historia' && <HistoriaSalud clienteId={id} />}
         {activeTab === 'objetivos' && <Objetivos clienteId={id} />}
         {activeTab === 'sesiones' && <Sesiones clienteId={id} cliente={cliente} />}
-        {activeTab === 'rueda' && <RuedaBienestar clienteId={id} cliente={cliente} />}
+        {activeTab === 'rueda' && (
+          <div className="flex flex-col gap-6">
+            <div className={`grid gap-6 ${cliente.rueda_inicial_activa && cliente.rueda_final_activa ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1 max-w-2xl mx-auto'}`}>
+              {cliente.rueda_inicial_activa && (
+                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                  <div className="bg-[#1e3a5f] px-6 py-3">
+                    <p className="text-white text-xs font-semibold uppercase tracking-widest text-center">Rueda Inicial</p>
+                  </div>
+                  <RuedaBienestar clienteId={id} tipo="inicial" esCoach={true} />
+                </div>
+              )}
+              {cliente.rueda_final_activa && (
+                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                  <div className="bg-[#7c9885] px-6 py-3">
+                    <p className="text-white text-xs font-semibold uppercase tracking-widest text-center">Rueda Final</p>
+                  </div>
+                  <RuedaBienestar clienteId={id} tipo="final" esCoach={true} />
+                </div>
+              )}
+              {!cliente.rueda_inicial_activa && !cliente.rueda_final_activa && (
+                <div className="bg-white rounded-xl p-8 text-center text-neutral-500">
+                  <p>No hay ruedas activas para este cliente.</p>
+                  <p className="text-sm mt-1">Actívalas desde la pestaña <strong>Portal</strong>.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         {activeTab === 'contrato' && <ContratoTab clienteId={id} cliente={cliente} />}
         {activeTab === 'portal' && <PanelInvitacion cliente={cliente} />}
       </main>
