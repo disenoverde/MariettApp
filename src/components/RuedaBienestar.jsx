@@ -646,10 +646,10 @@ export default function RuedaBienestar({ clienteId, tipo = 'inicial', esCoach = 
           {/* SVG fondo inline */}
           <div
             className="absolute inset-0 pointer-events-none"
-            dangerouslySetInnerHTML={{ __html: SVG_BG.replace(
-              /<svg /,
-              '<svg style="width:100%;height:100%" '
-            )}}
+            dangerouslySetInnerHTML={{ __html: SVG_BG
+              .replace(/<svg /, '<svg style="width:100%;height:100%" ')
+              .replace('id="svgRueda"', `id="svgRueda-${tipo}"`)
+            }}
           />
 
           {/* SVG overlay interactivo */}
