@@ -2,25 +2,30 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Helpers ──
+    // Helper: verificar si es coach leyendo desde Firestore
     function isCoach() {
-      return request.auth != null && request.auth.token.role == 'coach';
+      return request.auth != null &&
+             get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == 'coach';
     }
-    function isCliente(uid) {
-      return request.auth != null && request.auth.uid == uid && request.auth.token.role == 'cliente';
-    }
-    function isOwnerCliente(clienteId) {
-      // El cliente puede acceder si su uid_cliente coincide con request.auth.uid
-      return request.auth != null && request.auth.token.role == 'cliente' &&
+
+    // Helper: verificar si el cliente es dueño del documento
+    function isOwner(clienteId) {
+      return request.auth != null &&
              get(/databases/$(database)/documents/clientes/$(clienteId)).data.uid_cliente == request.auth.uid;
+    }
+
+    // ── Usuarios (roles) ──
+    match /usuarios/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null && request.auth.uid == uid;
+      allow read, write: if isCoach();
     }
 
     // ── Clientes ──
     match /clientes/{clienteId} {
       allow read, write: if isCoach();
-      allow read: if isOwnerCliente(clienteId);
-      // Cliente puede actualizar su propio documento al registrarse
-      // (con o sin claim de cliente, ya que el claim puede no estar aún)
+      allow read: if request.auth != null &&
+                     resource.data.uid_cliente == request.auth.uid;
       allow update: if request.auth != null &&
                        request.resource.data.uid_cliente == request.auth.uid;
     }
@@ -28,19 +33,16 @@ service cloud.firestore {
     // ── Historias de Salud ──
     match /historias_salud/{historiaId} {
       allow read, write: if isCoach();
-      allow read: if isOwnerCliente(historiaId);
-      allow update: if isOwnerCliente(historiaId) &&
-                       !resource.data.keys().hasAny(['bloqueada']) ||
-                       !resource.data.bloqueada;
+      allow read, update: if isOwner(historiaId);
     }
 
     // ── Objetivos ──
     match /objetivos/{objetivoId} {
       allow read, write: if isCoach();
-      allow read: if isOwnerCliente(objetivoId);
+      allow read: if isOwner(objetivoId);
     }
 
-    // ── Sesiones (SOLO el coach) ──
+    // ── Sesiones ──
     match /sesiones/{sesionId} {
       allow read, write: if isCoach();
     }
@@ -48,40 +50,22 @@ service cloud.firestore {
     // ── Ruedas del Bienestar ──
     match /ruedas_bienestar/{ruedaId} {
       allow read, write: if isCoach();
-      // Cliente puede leer y crear su rueda (no editar si está bloqueada)
-      allow read: if request.auth != null &&
-                     request.auth.token.role == 'cliente' &&
-                     resource.data.cliente_id == get(/databases/$(database)/documents/clientes/$(resource.data.cliente_id)).data.uid_cliente;
-      allow create: if request.auth != null && request.auth.token.role == 'cliente';
+      allow read, create: if request.auth != null &&
+                             request.auth.uid != null;
     }
 
     // ── Contratos ──
     match /contratos/{contratoId} {
       allow read, write: if isCoach();
-      // Cualquiera puede leer para firmar (ruta pública)
       allow read: if true;
-      // Cualquier persona puede firmar si el contrato está pendiente
       allow update: if resource.data.estado == 'pendiente_firma';
     }
 
     // ── Invitaciones ──
-    // ── Usuarios (roles) ──
-    match /usuarios/{uid} {
-      // Coach puede leer todos
-      allow read, write: if isCoach();
-      // El propio usuario puede leer su rol
-      allow read: if request.auth != null && request.auth.uid == uid;
-      // Cualquier usuario autenticado puede crear su propio documento de rol
-      allow create: if request.auth != null && request.auth.uid == uid;
-    }
-
     match /invitaciones/{invId} {
       allow read, write: if isCoach();
-      // Cualquiera puede leer para validar código (sin auth)
       allow read: if true;
-      // Solo usuarios autenticados pueden marcar como usado
-      allow update: if request.auth != null &&
-                       request.resource.data.usado == true;
+      allow update: if request.auth != null;
     }
   }
 }
