@@ -7,12 +7,25 @@ service cloud.firestore {
              get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == 'coach';
     }
 
-    match /usuarios/{uid} {
-      allow read: if request.auth != null && request.auth.uid == uid;
-      allow write: if request.auth != null && request.auth.uid == uid;
-      allow read, write: if isCoach();
+    function isClienteOwner(clienteId) {
+      return request.auth != null &&
+             get(/databases/$(database)/documents/clientes/$(clienteId)).data.uid_cliente == request.auth.uid;
     }
 
+    function isOwnerViaClienteId() {
+      return request.auth != null &&
+             resource.data.cliente_id != null &&
+             get(/databases/$(database)/documents/clientes/$(resource.data.cliente_id)).data.uid_cliente == request.auth.uid;
+    }
+
+    // ── Usuarios (roles) ──
+    match /usuarios/{uid} {
+      allow read, write: if isCoach();
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // ── Clientes ──
     match /clientes/{clienteId} {
       allow read, write: if isCoach();
       allow read: if request.auth != null &&
@@ -21,39 +34,43 @@ service cloud.firestore {
                        request.resource.data.uid_cliente == request.auth.uid;
     }
 
+    // ── Historia de Salud ──
     match /historias_salud/{historiaId} {
       allow read, write: if isCoach();
-      allow read, write: if request.auth != null &&
-                            resource.data.cliente_id != null &&
-                            get(/databases/$(database)/documents/clientes/$(resource.data.cliente_id)).data.uid_cliente == request.auth.uid;
+      allow read, write: if isOwnerViaClienteId();
     }
 
+    // ── Objetivos ──
     match /objetivos/{objetivoId} {
       allow read, write: if isCoach();
-      allow read: if request.auth != null &&
-                     resource.data.cliente_id != null &&
-                     get(/databases/$(database)/documents/clientes/$(resource.data.cliente_id)).data.uid_cliente == request.auth.uid;
+      allow read, write: if isOwnerViaClienteId();
     }
 
+    // ── Sesiones ──
     match /sesiones/{sesionId} {
       allow read, write: if isCoach();
-      allow read: if request.auth != null &&
-                     resource.data.cliente_id != null &&
-                     resource.data.tipo == 'con_acuerdos' &&
-                     get(/databases/$(database)/documents/clientes/$(resource.data.cliente_id)).data.uid_cliente == request.auth.uid;
+      // Cliente solo ve sesiones con acuerdos (el PDF resultante)
+      allow read: if isOwnerViaClienteId() &&
+                     resource.data.tipo == 'con_acuerdos';
     }
 
+    // ── Ruedas del Bienestar ──
     match /ruedas_bienestar/{ruedaId} {
       allow read, write: if isCoach();
       allow read, create: if request.auth != null;
+      allow update: if request.auth != null &&
+                       resource.data.clienteId == request.auth.uid ||
+                       !resource.data.bloqueada;
     }
 
+    // ── Contratos ──
     match /contratos/{contratoId} {
       allow read, write: if isCoach();
       allow read: if true;
       allow update: if resource.data.estado == 'pendiente_firma';
     }
 
+    // ── Invitaciones ──
     match /invitaciones/{invId} {
       allow read, write: if isCoach();
       allow read: if true;
