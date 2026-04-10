@@ -7,11 +7,6 @@ service cloud.firestore {
              get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.role == 'coach';
     }
 
-    function isOwner(clienteId) {
-      return request.auth != null &&
-             get(/databases/$(database)/documents/clientes/$(clienteId)).data.uid_cliente == request.auth.uid;
-    }
-
     match /usuarios/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow write: if request.auth != null && request.auth.uid == uid;
@@ -28,19 +23,24 @@ service cloud.firestore {
 
     match /historias_salud/{historiaId} {
       allow read, write: if isCoach();
-      allow read, write: if isOwner(historiaId);
+      allow read, write: if request.auth != null &&
+                            resource.data.cliente_id != null &&
+                            get(/databases/$(database)/documents/clientes/$(resource.data.cliente_id)).data.uid_cliente == request.auth.uid;
     }
 
     match /objetivos/{objetivoId} {
       allow read, write: if isCoach();
-      allow read: if isOwner(objetivoId);
+      allow read: if request.auth != null &&
+                     resource.data.cliente_id != null &&
+                     get(/databases/$(database)/documents/clientes/$(resource.data.cliente_id)).data.uid_cliente == request.auth.uid;
     }
 
     match /sesiones/{sesionId} {
       allow read, write: if isCoach();
-      // Cliente puede leer solo sesiones con acuerdos (tipo con_acuerdos)
-      allow read: if isOwner(resource.data.cliente_id) &&
-                     resource.data.tipo == 'con_acuerdos';
+      allow read: if request.auth != null &&
+                     resource.data.cliente_id != null &&
+                     resource.data.tipo == 'con_acuerdos' &&
+                     get(/databases/$(database)/documents/clientes/$(resource.data.cliente_id)).data.uid_cliente == request.auth.uid;
     }
 
     match /ruedas_bienestar/{ruedaId} {
